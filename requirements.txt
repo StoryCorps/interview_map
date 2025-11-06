@@ -1,0 +1,2 @@
+# Python dependencies for StoryCorps Interview Map
+# No external dependencies needed - all geocoding done in BigQuery!

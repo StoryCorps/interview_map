@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>StoryCorps Interview Map</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <header>
+      <img src="StoryCorps logo.svg" alt="StoryCorps logo" id="logo" />
+      <h1>StoryCorps Interview Map</h1>
+    </header>
+    <div class="filter-controls">
+      <label class="filter-label">
+        <input type="checkbox" id="filter-user-generated" checked />
+        <span class="filter-color-box" style="background-color: #E51022;"></span>
+        User Generated
+      </label>
+      <label class="filter-label">
+        <input type="checkbox" id="filter-signature" checked />
+        <span class="filter-color-box" style="background-color: #2D8095;"></span>
+        Signature
+      </label>
+    </div>
+    <div id="map"></div>
+    <footer></footer>
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
