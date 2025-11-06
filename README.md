@@ -1,275 +1,284 @@
 # StoryCorps Interview Map
 
-An interactive map visualization showing StoryCorps interview locations from the past 12 months, grouped by city and interview type.
+An interactive globe-view map visualizing StoryCorps interview locations across the United States, with support for three time ranges and category filtering.
+
+🌍 **Live Site**: [interviewmap.storycorps.org](http://interviewmap.storycorps.org)
 
 ## Overview
 
-This project displays interview data on an interactive Mapbox map, showing:
-- Interview counts by location (city/state)
-- Participant counts by location
-- Breakdown by interview type (App, Signature, SC Connect, OSS Connect, etc.)
-- Color-coded markers based on dominant interview type
-- Dynamic marker sizing based on interview volume
+This map displays geographic distribution of StoryCorps interviews with:
+- **Three time range views**: Past 12 Months, Past 10 Years, All Time
+- **Category filtering**: User Generated vs Signature interviews
+- **8,000+ cities** mapped across the United States
+- **200,000+ interviews** visualized (all-time view)
+- **Globe projection** with 3D Earth visualization
+- **Intelligent clustering** for performance with large datasets
+
+## Features
+
+### Time Range Toggles
+- **12 Months**: Recent activity (8K+ interviews, 1.5K cities)
+- **10 Years**: Medium-term trends (143K+ interviews, 8.5K cities)
+- **All Time**: Complete historical view (203K+ interviews, 8.8K cities)
+
+### Interactive Elements
+- **Mapbox clustering**: Automatically groups nearby locations at low zoom levels
+- **Click to zoom**: Click cluster circles to zoom in and expand
+- **Category filtering**: Toggle User Generated and Signature interviews independently
+- **Hover popups**: See city name, interview count, and category on hover
+- **Globe view**: Rotate and explore the 3D Earth projection
+
+### Visual Design
+- StoryCorps brand colors (Red: #E51022, Teal: #2D8095)
+- Gotham typography (brand font)
+- Responsive marker sizing based on interview volume
+- Clean, minimal interface with floating logo
+
+## Technology Stack
+
+### Frontend
+- **Mapbox GL JS v3.7.0** - Interactive maps with globe projection and clustering
+- **Vanilla JavaScript** - No frameworks, pure ES6+
+- **Static HTML/CSS** - No build process required
+- **GeoJSON** - Standard geographic data format
+
+### Data Pipeline
+- **Python 3.8+** - Data fetching and transformation
+- **Google BigQuery** - Data warehouse queries
+- **BigQuery Public Geo Data** - US Census Bureau geographic boundaries for geocoding
+- **No external APIs** - All geocoding done in BigQuery for speed
+
+### Infrastructure
+- **GitHub Pages** - Static site hosting
+- **Custom Domain** - interviewmap.storycorps.org via CNAME
+- **Git Version Control** - Source control and deployment
 
 ## Project Structure
 
 ```
 interview_map/
-├── README.md                 # This file
-├── index.html               # Main HTML page with Mapbox map
-├── script.js                # Frontend JavaScript for map rendering
-├── styles.css               # CSS styling for map and UI
-├── query.sql                # BigQuery SQL query for interview data
-├── fetch_interviews.py      # Python script to fetch and geocode data
-├── interviews.json          # Generated data file (for map display)
-├── StoryCorps logo.svg      # StoryCorps logo asset
-└── test_query.sql          # Test query (can be deleted)
+├── index.html                      # Main HTML page
+├── script.js                       # Map initialization, clustering, filtering
+├── styles.css                      # StoryCorps brand styling
+├── CNAME                           # GitHub Pages custom domain
+├── README.md                       # This file
+├── CLAUDE.md                       # Claude Code guidance
+│
+├── Data Queries (SQL)
+├── query_12months.sql              # Past 12 months query
+├── query_10years.sql               # Past 10 years query
+├── query_alltime.sql               # All-time query
+│
+├── Data Pipeline (Python)
+├── fetch_interviews.py             # Generates all three JSON datasets
+├── requirements.txt                # Python dependencies (none!)
+│
+├── Generated Data (JSON)
+├── interviews_12months.json        # ~260KB
+├── interviews_10years.json         # ~1.5MB
+├── interviews_alltime.json         # ~1.6MB
+│
+└── Assets
+    └── StoryCorps logo.svg         # Brand logo
 ```
 
-## Architecture
-
-### Data Pipeline
-
-1. **BigQuery Query** (`query.sql`):
-   - Queries `wp_posts` for published interviews from last 12 months
-   - Joins with `interview_address` to get city/state
-   - Excludes storycorps.org staff emails
-   - Aggregates by city/state/interview_type
-   - Returns interview counts and participant counts
-
-2. **Python Data Fetcher** (`fetch_interviews.py`):
-   - Executes BigQuery query via `bq` CLI
-   - Geocodes city/state combinations to lat/lon using Nominatim (OpenStreetMap)
-   - Caches geocoding results to minimize API calls
-   - Outputs `interviews.json` for frontend consumption
-
-3. **Frontend Web Map**:
-   - HTML/CSS/JavaScript single-page application
-   - Uses Mapbox GL JS for map rendering
-   - Loads `interviews.json` and displays markers
-   - Groups markers by location
-   - Shows detailed popups on hover
-
-### Interview Types
-
-The map categorizes interviews into types based on their `interview_id` prefix:
-- **App**: Interviews starting with "APP"
-- **Signature**: Interviews with subject_log or generic interview_id
-- **SC Connect**: Remote interviews (remote_interview flag = '1')
-- **OSS Connect**: Interviews starting with "OSC"
-- **Other/Manual Upload**: Everything else
-
-## Setup
+## Setup & Development
 
 ### Prerequisites
 
-1. **BigQuery CLI (`bq`)**:
+1. **Google Cloud CLI** with BigQuery access:
    ```bash
-   # Install Google Cloud SDK
-   # Follow: https://cloud.google.com/sdk/docs/install
-
-   # Authenticate
+   # Install: https://cloud.google.com/sdk/docs/install
    gcloud auth login
    gcloud config set project sc-data-warehouse
    ```
 
-2. **Python 3.8+** with dependencies:
-   ```bash
-   pip install geopy
-   ```
+2. **Python 3.8+** (no additional packages needed!)
 
-3. **Mapbox Access Token**:
-   - Currently using molson-storycorps-org token (hardcoded in `script.js`)
-   - Token is public-facing (client-side only, acceptable for read-only maps)
+3. **Git** and **GitHub CLI** (`gh`) for deployment
 
-### Running the Data Pipeline
-
-To refresh the map with latest data:
+### Local Development
 
 ```bash
-# Navigate to project directory
-cd /Users/molson/code/storycorps/interview_map
+# Clone the repository
+git clone https://github.com/StoryCorps/interview_map.git
+cd interview_map
 
-# Run the data fetcher (takes 2-3 minutes due to geocoding rate limits)
-python3 fetch_interviews.py
-```
-
-**Output**:
-```
-============================================================
-StoryCorps Interview Map Data Pipeline
-============================================================
-Reading query from .../query.sql...
-Executing BigQuery query...
-✓ Retrieved 100 rows from BigQuery
-Transforming and geocoding data...
-  Processing location 10/100...
-  ...
-✓ Successfully geocoded 99 locations
-✓ Saved 99 locations to interviews.json
-============================================================
-✓ Pipeline completed successfully!
-============================================================
-
-Summary:
-  Locations: 99
-  Total Interviews: 5160
-  Total Participants: 10648
-
-By Interview Type:
-  App: 5022
-  SC Connect: 138
-```
-
-### Viewing the Map
-
-Option 1: **Local Python Server** (recommended for testing):
-```bash
+# Start local server
 python3 -m http.server 8000
-# Open http://localhost:8000 in browser
+# Open http://localhost:8000
 ```
 
-Option 2: **Deploy to GitHub Pages** (like staffmap):
-1. Create a new GitHub repository
-2. Push all files to the repository
-3. Enable GitHub Pages in repository settings
-4. Optionally add a CNAME file for custom domain
+### Updating Data
+
+To refresh interview data from BigQuery:
+
+```bash
+# Run the data pipeline (generates all three time ranges)
+python3 fetch_interviews.py
+
+# Commit and push
+git add interviews_*.json
+git commit -m "Update interview data"
+git push
+```
+
+The site will automatically deploy within 1-2 minutes.
+
+## Data Pipeline Details
+
+### SQL Queries
+
+Each query includes:
+- **Interview type detection** - Classifies as "User Generated" (APP prefix) or "Signature"
+- **Date filtering** - Different ranges for each view
+- **City/state geocoding** - Joins with BigQuery public US Census data
+- **NYC borough mapping** - Special handling for Brooklyn, Bronx, Manhattan, Queens, Staten Island
+- **Fuzzy city matching** - Strips suffixes like "city", "town", "metropolitan government"
+
+### Geocoding Strategy
+
+Uses `bigquery-public-data.geo_us_boundaries.zip_codes`:
+1. Aggregate ZIP code centroids by city/state
+2. Calculate average lat/lon for each city
+3. Handle special cases (NYC boroughs, metropolitan areas)
+4. ~87% match rate for US cities with standard names
+
+### Coverage Statistics
+
+**All-Time View**:
+- Total published interviews: 392,502
+- Interviews with city/state: 233,678 (60%)
+- Successfully geocoded: 203,112 (52% of total, 87% of those with location data)
+
+**Missing Data**:
+- ~40% lack city/state in database
+- ~13% have city names that don't match US Census data (international, typos, unusual names)
 
 ## Customization
 
-### Adjusting Date Range
-
-Edit `query.sql` line 60:
-```sql
--- Current: Last 12 months
-wp_interviews.post_date >= DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 12 MONTH)
-
--- Change to specific date:
-wp_interviews.post_date >= '2025-01-01'
-
--- Or different interval:
-wp_interviews.post_date >= DATETIME_SUB(CURRENT_DATETIME(), INTERVAL 6 MONTH)
-```
-
 ### Changing Map Colors
 
-Edit `script.js` lines 12-18 to customize interview type colors:
+Edit `script.js` line 14-16:
 ```javascript
-const typeColors = {
-  "App": "#FF6B6B",              // Red
-  "Signature": "#4ECDC4",        // Teal
-  "SC Connect": "#45B7D1",       // Blue
-  "OSS Connect": "#96CEB4",      // Green
-  "Other/Manual Upload": "#DDA15E" // Orange
+const categoryColors = {
+  "User Generated": "#E51022",  // Change this color
+  "Signature": "#2D8095"         // And this color
 };
+```
+
+### Adjusting Cluster Settings
+
+Edit `script.js` line 61-62:
+```javascript
+clusterMaxZoom: 14,  // Max zoom level for clustering
+clusterRadius: 50    // Pixel radius for clustering
 ```
 
 ### Modifying Marker Sizes
 
-Edit `script.js` line 57:
+Edit `script.js` line 110-117:
 ```javascript
-// Current formula: sqrt(count) * 8 + 10
-const size = Math.sqrt(locationData.totalInterviews) * 8 + 10;
-
-// Make markers bigger:
-const size = Math.sqrt(locationData.totalInterviews) * 12 + 15;
-
-// Make markers smaller:
-const size = Math.sqrt(locationData.totalInterviews) * 6 + 8;
+'circle-radius': [
+  'interpolate', ['linear'], ['get', 'interview_count'],
+  1, 8,      // 1 interview = 8px radius
+  50, 15,    // 50 interviews = 15px
+  100, 20,   // 100 interviews = 20px
+  200, 25    // 200+ interviews = 25px
+]
 ```
 
-## Automation
+### Changing Map Style
 
-To automatically refresh data on a schedule:
+Edit `script.js` line 7:
+```javascript
+style: "mapbox://styles/mapbox/streets-v12", // Current
+// Other options:
+// "mapbox://styles/mapbox/outdoors-v12"  // Topographic
+// "mapbox://styles/mapbox/dark-v11"      // Dark mode
+// "mapbox://styles/mapbox/satellite-streets-v12"  // Satellite
+```
 
-### Using Cron (Mac/Linux)
+## Deployment
+
+### GitHub Pages Configuration
+
+The site is automatically deployed via GitHub Pages:
+- **Repository**: https://github.com/StoryCorps/interview_map
+- **Branch**: `master`
+- **Custom Domain**: interviewmap.storycorps.org (via CNAME file)
+- **Deploy Trigger**: Any push to `master` branch
+
+### DNS Configuration
+
+CNAME record (already configured):
+```
+Type:  CNAME
+Host:  interviewmap
+Value: storycorps.github.io
+```
+
+### Manual Deployment
 
 ```bash
-# Edit crontab
-crontab -e
+# Make changes
+git add .
+git commit -m "Description of changes"
+git push origin master
 
-# Add line to run daily at 6 AM:
-0 6 * * * cd /Users/molson/code/storycorps/interview_map && /usr/local/bin/python3 fetch_interviews.py >> /tmp/interview_map.log 2>&1
+# GitHub Pages deploys automatically within 1-2 minutes
 ```
 
-### Using GitHub Actions
+## Data Privacy & Security
 
-If deploying to GitHub Pages, create `.github/workflows/update_data.yml`:
+- **No personal information**: Only aggregate interview counts by location
+- **City/state level only**: No street addresses or precise coordinates
+- **Public Mapbox token**: Restricted to storycorps.org domains only
+- **Internal use**: Footer indicates "Please don't share outside of StoryCorps"
 
-```yaml
-name: Update Interview Data
-on:
-  schedule:
-    - cron: '0 6 * * *'  # Daily at 6 AM UTC
-  workflow_dispatch:  # Allow manual trigger
+## Browser Support
 
-jobs:
-  update:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
+- Chrome/Edge 90+
+- Firefox 88+
+- Safari 14+
+- Requires JavaScript enabled
+- Requires WebGL for Mapbox GL
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
+## Performance
 
-      - name: Install dependencies
-        run: pip install geopy
-
-      - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@v1
-        with:
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Fetch interview data
-        run: python3 fetch_interviews.py
-
-      - name: Commit and push
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add interviews.json
-          git commit -m "Update interview data [skip ci]" || exit 0
-          git push
-```
+- **Initial load**: ~2MB total (all three datasets pre-loaded)
+- **Clustering**: Handles 10,000+ points smoothly
+- **Filtering**: Instant (no network requests)
+- **Time range switching**: Instant (pre-loaded data)
 
 ## Troubleshooting
 
-### "geopy not installed"
-```bash
-pip install geopy
-```
-
-### "BigQuery error: Not found"
-Make sure you're authenticated with BigQuery:
-```bash
-gcloud auth login
-gcloud config set project sc-data-warehouse
-```
-
-### Geocoding fails for some locations
-- Nominatim (OpenStreetMap) has rate limits (1 request/second)
-- Some unusual city names may not be recognized
-- Failed locations are reported but won't appear on map
-
 ### Map not loading
 1. Check browser console for errors
-2. Verify `interviews.json` exists and has valid data
-3. Confirm Mapbox token is valid
-4. Make sure you're serving via HTTP (not file://)
+2. Verify all JSON files exist
+3. Clear browser cache (Cmd+Shift+R)
+4. Ensure Mapbox token is valid
 
-## Data Privacy
+### Missing cities
+Some cities don't match US Census data due to:
+- Non-standard city names
+- International locations
+- Typos or abbreviations
+- Missing data in `interview_address` table
 
-- This map shows **aggregate** interview counts only
-- No participant names, personal details, or interview content
-- City/state location data only (no street addresses)
-- Footer warns: "Please don't share outside of StoryCorps"
-
-## Contact
-
-Questions? Contact [digital@storycorps.org](mailto:digital@storycorps.org)
+### Globe view not working
+- Requires Mapbox GL JS v3.0+
+- Check that `projection: 'globe'` is set in script.js
+- Some older browsers may not support globe projection
 
 ## Related Projects
 
-- **staffmap**: `/Users/molson/code/storycorps/staffmap` - Similar project mapping StoryCorps staff locations by ZIP code
+- **StoryCorps Staff Map**: `/Users/molson/code/storycorps/staffmap` - Similar project showing staff locations by ZIP code
+
+## Contact
+
+Questions or issues? Contact [digital@storycorps.org](mailto:digital@storycorps.org)
+
+## License
+
+Internal StoryCorps project - Not for external distribution
