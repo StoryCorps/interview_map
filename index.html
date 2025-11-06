@@ -11,11 +11,24 @@
     />
   </head>
   <body>
-    <header>
+    <div class="top-bar">
       <img src="StoryCorps logo.svg" alt="StoryCorps logo" id="logo" />
-      <h1>StoryCorps Interview Map</h1>
-    </header>
+      <div class="title-toggle-container">
+        <h1 id="map-title">Interview Map</h1>
+        <div class="time-range-toggle">
+          <button id="toggle-12months" class="time-range-btn active">12 Months</button>
+          <button id="toggle-10years" class="time-range-btn">10 Years</button>
+          <button id="toggle-alltime" class="time-range-btn">All Time</button>
+        </div>
+      </div>
+    </div>
     <div class="filter-controls">
+      <!-- Stats temporarily commented out due to data accuracy concerns
+      <div class="filter-stats">
+        <div><span class="filter-stats-number" id="total-interviews">-</span> interviews</div>
+        <div style="font-size: 12px; margin-top: 4px; color: #999;" id="total-cities">- cities</div>
+      </div>
+      -->
       <label class="filter-label">
         <input type="checkbox" id="filter-user-generated" checked />
         <span class="filter-color-box" style="background-color: #E51022;"></span>

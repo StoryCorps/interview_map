@@ -12,6 +12,10 @@ ENV/
 # Test files
 test_query.sql
 
+# Legacy data files
+interviews.json
+query.sql
+
 # Logs
 *.log
 
